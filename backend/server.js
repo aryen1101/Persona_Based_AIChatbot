@@ -2,13 +2,13 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import personas from "./prompts.js";
-import { GoogleGenAI } from "@google/genai";
+import Groq from "groq-sdk";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 app.post("/api/chat", async (req, res) => {
   const { persona, message, history } = req.body;
@@ -20,25 +20,28 @@ app.post("/api/chat", async (req, res) => {
       return res.status(400).json({ error: "Invalid Persona Selected." });
     }
 
-    const chat = ai.chats.create({
-      model: "gemini-2.5-flash",
-      config: {
-        systemInstruction: systemPrompt,
-      },
-      history: history || [],
+    const messages = [
+      { role: "system", content: systemPrompt },
+      ...(history || []).map((msg) => ({
+        role: msg.role === "user" ? "user" : "assistant",
+        content: msg.parts?.[0]?.text || msg.content || "",
+      })),
+      { role: "user", content: message },
+    ];
+
+    const response = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages,
+      max_tokens: 1024,
     });
 
-    const result = await chat.sendMessage({ message: message });
+    res.json({ response: response.choices[0].message.content });
 
-    res.json({ response: result.text });
   } catch (error) {
-    console.log("Gemini API Error:", error.message);
-    res
-      .status(500)
-      .json({
-        error:
-          "Failed to generate a response. Please check API key and try again!",
-      });
+    console.log("Groq API Error:", error.message);
+    res.status(500).json({
+      error: "Failed to generate a response. Please check API key and try again!",
+    });
   }
 });
 

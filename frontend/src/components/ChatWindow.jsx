@@ -15,105 +15,97 @@ export default function ChatWindow({ messages, isLoading, persona, error, onChip
   return (
     <div style={{
       flex: 1, overflowY: 'auto',
-      padding: '24px 20px',
-      display: 'flex', flexDirection: 'column', gap: 16,
-      background: '#0a0a0a',
-      scrollbarWidth: 'thin', scrollbarColor: '#1e1e1e transparent',
+      display: 'flex', flexDirection: 'column',
     }}>
+      <div style={{
+        flex: 1,
+        maxWidth: 720, width: '100%',
+        margin: '0 auto', padding: '32px 24px',
+        display: 'flex', flexDirection: 'column', gap: 6,
+      }}>
 
-      {messages.length === 0 && (
-        <div style={{
-          flex: 1, display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          gap: 20, padding: '40px 24px',
-          animation: 'fadeUp 0.4s ease both',
-        }}>
-          {/* Large avatar */}
-          <div style={{ position: 'relative' }}>
+        {/* Empty state */}
+        {messages.length === 0 && (
+          <div style={{
+            flex: 1, display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            gap: 20, padding: '60px 0',
+            animation: 'fadeUp 0.35s ease both',
+          }}>
+            <PersonaAvatar persona={persona} size={72} accent={accent} />
+
+            <div style={{ textAlign: 'center' }}>
+              <h2 style={{
+                fontSize: 22, fontWeight: 600, color: '#ececec',
+                marginBottom: 6, letterSpacing: '-0.02em',
+              }}>
+                {persona.name}
+              </h2>
+              <p style={{ fontSize: 13, color: '#555' }}>{persona.title}</p>
+            </div>
+
+            {/* Chips */}
             <div style={{
-              position: 'absolute', inset: -6,
-              borderRadius: 22,
-              background: `radial-gradient(circle, ${accent.dim}, transparent 70%)`,
-            }} />
-            <PersonaAvatar persona={persona} size={80} accent={accent} />
-          </div>
-
-          <div style={{ textAlign: 'center' }}>
-            <p style={{
-              fontFamily: "'DM Serif Display', serif",
-              fontSize: 20, color: '#e8e8e8',
-              fontWeight: 400, letterSpacing: '-0.01em',
-              marginBottom: 6,
+              display: 'flex', flexWrap: 'wrap',
+              justifyContent: 'center', gap: 8,
+              maxWidth: 500, marginTop: 8,
             }}>
-              {persona.name}
-            </p>
-            <p style={{ fontSize: 11, color: '#383838', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-              {persona.title}
-            </p>
+              {persona.chips.map((chip, i) => (
+                <button
+                  key={chip}
+                  className="chip-in"
+                  onClick={() => onChipClick(chip)}
+                  style={{
+                    fontSize: 12.5, padding: '9px 16px',
+                    borderRadius: 20,
+                    border: '1px solid #333',
+                    background: '#2a2a2a',
+                    color: '#aaa',
+                    cursor: 'pointer', fontFamily: 'inherit',
+                    transition: 'all 0.15s ease',
+                    animationDelay: `${i * 0.06}s`,
+                    lineHeight: 1.4,
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.borderColor = accent.border
+                    e.currentTarget.style.color = accent.primary
+                    e.currentTarget.style.background = accent.dim
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.borderColor = '#333'
+                    e.currentTarget.style.color = '#aaa'
+                    e.currentTarget.style.background = '#2a2a2a'
+                  }}
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
           </div>
+        )}
 
-          {/* Thin rule */}
-          <div style={{ width: 40, height: 1, background: 'linear-gradient(90deg, transparent, #252525, transparent)' }} />
+        {/* Messages */}
+        {messages.map((m, i) => (
+          <MessageBubble key={m.id} message={m} persona={persona} accent={accent} index={i} />
+        ))}
 
-          <p style={{ fontSize: 12, color: '#2e2e2e', letterSpacing: '0.04em' }}>
-            Try one of these to begin
-          </p>
+        {isLoading && <TypingIndicator persona={persona} accent={accent} />}
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 8, maxWidth: 400 }}>
-            {persona.chips.map((chip, i) => (
-              <button
-                key={chip}
-                className="chip-btn"
-                onClick={() => onChipClick(chip)}
-                style={{
-                  fontSize: 12, padding: '8px 16px',
-                  borderRadius: 20,
-                  color: '#5a5a5a',
-                  background: '#0f0f0f',
-                  border: `1px solid #222`,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  transition: 'all 0.2s ease',
-                  animationDelay: `${i * 0.07}s`,
-                  lineHeight: 1.4,
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.color = accent.primary
-                  e.currentTarget.style.borderColor = accent.border
-                  e.currentTarget.style.background = accent.dim
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.color = '#5a5a5a'
-                  e.currentTarget.style.borderColor = '#222'
-                  e.currentTarget.style.background = '#0f0f0f'
-                }}
-              >
-                {chip}
-              </button>
-            ))}
+        {error && (
+          <div style={{
+            textAlign: 'center', fontSize: 12.5,
+            padding: '10px 18px', borderRadius: 10,
+            margin: '8px auto', maxWidth: 340,
+            color: '#f87171',
+            background: 'rgba(248,113,113,0.06)',
+            border: '1px solid rgba(248,113,113,0.15)',
+          }}>
+            {error}
           </div>
-        </div>
-      )}
+        )}
 
-      {messages.map((m, i) => (
-        <MessageBubble key={m.id} message={m} persona={persona} accent={accent} index={i} />
-      ))}
-
-      {isLoading && <TypingIndicator persona={persona} accent={accent} />}
-
-      {error && (
-        <div style={{
-          textAlign: 'center', fontSize: 12,
-          padding: '10px 18px', borderRadius: 10,
-          margin: '0 auto', maxWidth: 320,
-          color: '#f87171',
-          background: 'rgba(248,113,113,0.05)',
-          border: '1px solid rgba(248,113,113,0.12)',
-        }}>
-          {error}
-        </div>
-      )}
-      <div ref={endRef} />
+        <div ref={endRef} />
+      </div>
     </div>
   )
 }

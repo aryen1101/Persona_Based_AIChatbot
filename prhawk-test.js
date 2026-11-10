@@ -14,3 +14,5 @@ function average(values) {
 }
 
 module.exports = { API_KEY, getUser, average };
+
+console.log(API_KEY);
